@@ -30,7 +30,7 @@ int main(void)
 	
 	for ( int i = 0; i < 80 * 80; i++ )
 	{
-		buffer[i] = 0xFFF080FF;
+		buffer[i] = 0x5FCDE4FF;
 	}
 	
 	SDL_UpdateTexture(texture, NULL, buffer, 4 * 80);
@@ -56,8 +56,7 @@ int main(void)
 
 		SDL_SetRenderDrawColor(renderer, 0xFF,0xFF,0xFF,0xFF);
 		SDL_RenderClear(renderer);
-		SDL_FRect dst = (SDL_FRect){ 0,0,80,80 };
-		SDL_RenderTexture(renderer, texture, NULL, &dst);
+		SDL_RenderTexture(renderer, texture, NULL, NULL);
 		SDL_RenderPresent(renderer);
 	}
 	
