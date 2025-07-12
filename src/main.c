@@ -6,26 +6,31 @@ SDL_Texture* texture = NULL;
 Uint32 buffer[80 * 80] = { 0 };
 bool quit = false;
 
-int main(void)
+void sdl_init(void)
 {
 	if ( !SDL_Init(SDL_INIT_VIDEO) )
 	{
 		SDL_Log("%s", SDL_GetError());
-		return -1;
+		exit(-1);
 	}
 
 	if ( !SDL_CreateWindowAndRenderer("Raycaster", 960, 640, 0, &window, &renderer) )
 	{
 		SDL_Log("%s", SDL_GetError());
-		return -1;
+		exit(-1);
 	}
 
 	if ( !SDL_SetRenderVSync(renderer, 1) )
 	{
 		SDL_Log("%s", SDL_GetError());
-		return -1;
+		exit(-1);
 	}
-	
+
+}
+
+int main(void)
+{
+	sdl_init();
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 80, 80);
 	
 	for ( int i = 0; i < 80 * 80; i++ )
