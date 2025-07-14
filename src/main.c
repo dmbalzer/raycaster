@@ -28,6 +28,44 @@ void sdl_init(void)
 
 }
 
+void sdl_do_events(void)
+{
+	SDL_Event event;
+	while ( SDL_PollEvent(&event) )
+	{
+		switch ( event.type )
+		{
+			case SDL_EVENT_QUIT:
+				quit = true;
+			break;
+			case SDL_EVENT_KEY_DOWN:
+				if ( event.key.key == SDLK_ESCAPE )
+				{
+					quit = true;
+				}
+			break;
+		}
+	}
+}
+
+void sdl_begin_draw(void)
+{
+	SDL_SetRenderDrawColor(renderer, 0xFF,0xFF,0xFF,0xFF);
+	SDL_RenderClear(renderer);
+}
+
+void sdl_end_draw(void)
+{
+	SDL_RenderPresent(renderer);
+}
+
+void sdl_quit(void)
+{
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+}
+
 int main(void)
 {
 	sdl_init();
@@ -42,32 +80,14 @@ int main(void)
 
 	while ( !quit )
 	{
-		SDL_Event event;
-		while ( SDL_PollEvent(&event) )
-		{
-			switch ( event.type )
-			{
-				case SDL_EVENT_QUIT:
-					quit = true;
-				break;
-				case SDL_EVENT_KEY_DOWN:
-					if ( event.key.key == SDLK_ESCAPE )
-					{
-						quit = true;
-					}
-				break;
-			}
-		}
 
-		SDL_SetRenderDrawColor(renderer, 0xFF,0xFF,0xFF,0xFF);
-		SDL_RenderClear(renderer);
+		sdl_do_events();
+		sdl_begin_draw();
 		SDL_RenderTexture(renderer, texture, NULL, NULL);
-		SDL_RenderPresent(renderer);
+		sdl_end_draw();
 	}
 	
 	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	sdl_quit();
 	return 0;
 }
