@@ -49,7 +49,7 @@ void sdl_do_events(void)
 
 void sdl_begin_draw(void)
 {
-	SDL_SetRenderDrawColor(renderer, 0xFF,0xFF,0xFF,0xFF);
+	SDL_SetRenderDrawColor(renderer, WHITE);
 	SDL_RenderClear(renderer);
 }
 
