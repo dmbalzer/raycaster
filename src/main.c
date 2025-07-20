@@ -1,5 +1,7 @@
 #include <SDL3/SDL.h>
 #include "sdl.h"
+#define RAYMATH_IMPLEMENTATION
+#include "raymath.h"
 
 #define MAP_W 80
 #define MAP_H 80
@@ -10,19 +12,19 @@
 #define SCREEN_W 240
 #define SCREEN_H 240
 
-#define PI 3.14159265358979323846f
 #define FOV PI/2
 
 
 extern SDL_Renderer* renderer;
+extern float frametime;
 bool quit = false;
 
 Uint32 map_buffer[MAP_PIXEL_W * MAP_PIXEL_H] = { 0 };
 SDL_Texture* map_texture = NULL;
 
-typedef SDL_FPoint Vector;
-
-Vector position = { 0 };
+Vector2 pos = { 0 };
+Vector2 dir = { 0 };
+Vector2 plane = { 0 };
 
 int main(void)
 {
@@ -46,13 +48,18 @@ int main(void)
 	SDL_UpdateTexture(map_texture, NULL, map_buffer, 4 * MAP_PIXEL_W);
 
 	/* Init Player */
-	position.x = MAP_PIXEL_W / 2;
-	position.y = MAP_PIXEL_H / 2;
+	pos.x = MAP_PIXEL_W / 2;
+	pos.y = MAP_PIXEL_H / 2;
+	dir.x = 0;
+	dir.y = 1;
 
 	while ( !quit )
 	{
-
 		sdl_do_events();
+
+		dir = Vector2Rotate(dir, 1*frametime);
+		plane = Vector2Rotate(dir, PI/2);
+
 		sdl_begin_draw();
 		
 		/* Render Map */	
@@ -61,8 +68,28 @@ int main(void)
 		
 		/* Render Player */
 		SDL_SetRenderDrawColor(renderer, GREEN);
-		SDL_FRect position_rect = (SDL_FRect){position.x - 4, position.y - 4, 8, 8 };
+		SDL_FRect position_rect = (SDL_FRect){pos.x - 4, pos.y - 4, 8, 8 };
 		SDL_RenderFillRect(renderer, &position_rect);
+		
+		/* Render Direction Vector */
+		{
+			SDL_SetRenderDrawColor(renderer, BLUE);
+			/* Get line end point from direction vector scaled by length to screen */
+			Vector2 end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(PI/4)));
+			SDL_RenderLine(renderer, pos.x, pos.y, end.x, end.y);
+		}
+		
+		/* Render Plane Vector */
+		{
+			SDL_SetRenderDrawColor(renderer, GREEN);
+			/* Get line direction end point from direction vector scaled by length to screen */
+			Vector2 dir_end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(PI/4)));
+			/* Move start point to left of screen */
+			Vector2 start = Vector2Subtract(dir_end, Vector2Scale(plane, SCREEN_W/2));
+			/* Get end point at left of screen */
+			Vector2 end = Vector2Add(dir_end, Vector2Scale(plane, SCREEN_W/2));
+			SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+		}
 
 		sdl_end_draw();
 	}

@@ -4,6 +4,7 @@
 extern bool quit;
 static SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
+float frametime = 0.0f;
 
 void sdl_init(void)
 {
@@ -56,6 +57,10 @@ void sdl_begin_draw(void)
 void sdl_end_draw(void)
 {
 	SDL_RenderPresent(renderer);
+	static Uint64 prev = 0;
+	const Uint64 now = SDL_GetTicks();
+	frametime = (now - prev)/1000.0f;
+	prev = now;
 }
 
 void sdl_quit(void)
