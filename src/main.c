@@ -75,7 +75,7 @@ int main(void)
 		{
 			SDL_SetRenderDrawColor(renderer, BLUE);
 			/* Get line end point from direction vector scaled by length to screen */
-			Vector2 end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(PI/4)));
+			Vector2 end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(FOV/2)));
 			SDL_RenderLine(renderer, pos.x, pos.y, end.x, end.y);
 		}
 		
@@ -83,7 +83,7 @@ int main(void)
 		{
 			SDL_SetRenderDrawColor(renderer, GREEN);
 			/* Get line direction end point from direction vector scaled by length to screen */
-			Vector2 dir_end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(PI/4)));
+			Vector2 dir_end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(FOV/2)));
 			/* Move start point to left of screen */
 			Vector2 start = Vector2Subtract(dir_end, Vector2Scale(plane, SCREEN_W/2));
 			/* Get end point at left of screen */
