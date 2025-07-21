@@ -7,6 +7,29 @@ static SDL_Renderer* renderer = NULL;
 static float frametime = 0.0f;
 static bool quit = false;
 
+void sdl_init(void);
+void sdl_do_events(void);
+void sdl_begin_draw(void);
+void sdl_end_draw(void);
+void sdl_quit(void);
+
+int main(void)
+{
+	sdl_init();
+	
+	while ( !quit )
+	{
+		sdl_do_events();
+
+		sdl_begin_draw();
+
+		sdl_end_draw();
+	}
+	
+	sdl_quit();
+	return 0;
+}
+
 void sdl_init(void)
 {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -56,19 +79,3 @@ void sdl_quit(void)
 	SDL_Quit();
 }
 
-int main(void)
-{
-	sdl_init();
-	
-	while ( !quit )
-	{
-		sdl_do_events();
-
-		sdl_begin_draw();
-
-		sdl_end_draw();
-	}
-	
-	sdl_quit();
-	return 0;
-}
