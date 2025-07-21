@@ -1,112 +1,74 @@
 #include <SDL3/SDL.h>
-#include "sdl.h"
 #define RAYMATH_IMPLEMENTATION
 #include "raymath.h"
 
-#define MAP_W 80
-#define MAP_H 80
-#define TILE_SIZE 8
-#define MAP_PIXEL_W (MAP_W*TILE_SIZE)
-#define MAP_PIXEL_H (MAP_H*TILE_SIZE)
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static float frametime = 0.0f;
+static bool quit = false;
 
-#define SCREEN_W 240
-#define SCREEN_H 240
+void sdl_init(void)
+{
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_CreateWindowAndRenderer("Raycaster", 960, 640, 0, &window, &renderer);
+	SDL_SetRenderVSync(renderer, 1);
+}
 
-#define FOV PI/2
+void sdl_do_events(void)
+{
+	SDL_Event event;
+	while ( SDL_PollEvent(&event) )
+	{
+		switch ( event.type )
+		{
+			case SDL_EVENT_QUIT:
+				quit = true;
+			break;
+			case SDL_EVENT_KEY_DOWN:
+				if ( event.key.key == SDLK_ESCAPE )
+				{
+					quit = true;
+				}
+			break;
+		}
+	}
+}
 
+void sdl_begin_draw(void)
+{
+	SDL_SetRenderDrawColor(renderer, 0x00,0x00,0x00,0xFF);
+	SDL_RenderClear(renderer);
+}
 
-extern SDL_Renderer* renderer;
-extern float frametime;
-bool quit = false;
+void sdl_end_draw(void)
+{
+	SDL_RenderPresent(renderer);
+	static Uint64 prev = 0;
+	const Uint64 now = SDL_GetTicks();
+	frametime = ( prev - now ) /1000.0f;
+	prev = now;
+}
 
-Uint32 map_buffer[MAP_PIXEL_W * MAP_PIXEL_H] = { 0 };
-SDL_Texture* map_texture = NULL;
-
-Vector2 pos = { 0 };
-Vector2 dir = { 0 };
-Vector2 plane = { 0 };
+void sdl_quit(void)
+{
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+}
 
 int main(void)
 {
 	sdl_init();
 	
-	/* Init Map */
-	map_texture = SDL_CreateTexture(
-		renderer,
-		SDL_PIXELFORMAT_RGBA8888,
-		SDL_TEXTUREACCESS_STREAMING,
-		MAP_PIXEL_W,
-		MAP_PIXEL_H);
-
-	/* Clear map with BLACK */
-	for ( int i = 0; i < MAP_PIXEL_W * MAP_PIXEL_H; i++ )
-	{
-		map_buffer[i] = BLACK_HEX;
-	}
-	
-	/* Update map texture */
-	SDL_UpdateTexture(map_texture, NULL, map_buffer, 4 * MAP_PIXEL_W);
-
-	/* Init Player */
-	pos.x = MAP_PIXEL_W / 2;
-	pos.y = MAP_PIXEL_H / 2;
-	dir.x = 0;
-	dir.y = 1;
-
 	while ( !quit )
 	{
 		sdl_do_events();
 
-		dir = Vector2Rotate(dir, 1*frametime);
-		plane = Vector2Rotate(dir, PI/2);
-
 		sdl_begin_draw();
-		
-		/* Render Map */	
-		SDL_FRect dst = (SDL_FRect){0, 0, map_texture->w, map_texture->h};
-		SDL_RenderTexture(renderer, map_texture, NULL, &dst);
-		
-		/* Render Player */
-		SDL_SetRenderDrawColor(renderer, GREEN);
-		SDL_FRect position_rect = (SDL_FRect){pos.x - 4, pos.y - 4, 8, 8 };
-		SDL_RenderFillRect(renderer, &position_rect);
-		
-		/* Render Direction Vector */
-		{
-			SDL_SetRenderDrawColor(renderer, BLUE);
-			/* Get line end point from direction vector scaled by length to screen */
-			Vector2 end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(FOV/2)));
-			SDL_RenderLine(renderer, pos.x, pos.y, end.x, end.y);
-		}
-		
-		/* Render Plane Vector */
-		{
-			SDL_SetRenderDrawColor(renderer, GREEN);
-			/* Get line direction end point from direction vector scaled by length to screen */
-			Vector2 dir_end = Vector2Add(pos, Vector2Scale(dir, SCREEN_W/2 / tan(FOV/2)));
-			/* Move start point to left of screen */
-			Vector2 start = Vector2Subtract(dir_end, Vector2Scale(plane, SCREEN_W/2));
-			/* Get end point at left of screen */
-			Vector2 end = Vector2Add(dir_end, Vector2Scale(plane, SCREEN_W/2));
-			SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
-		}
 
 		sdl_end_draw();
 	}
 	
-	SDL_DestroyTexture(map_texture);	
-
 	sdl_quit();
 	return 0;
 }
-
-/***********************************************
-SDL_Texture* texture = NULL;
-
-texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 80, 80);
-
-
-SDL_RenderTexture(renderer, texture, NULL, NULL);
-SDL_DestroyTexture(texture);
-
-*************************************************/
