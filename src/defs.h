@@ -7,4 +7,8 @@
 #define GREEN		0x00,0xFF,0x00,0xFF
 #define BLUE		0x00,0x00,0xFF,0xFF
 
+#define MAP_W		15
+#define MAP_H		11
+#define TILE_SIZE	24
+
 #endif // DEFS_INCLUDED
