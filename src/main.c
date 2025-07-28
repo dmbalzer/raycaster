@@ -3,18 +3,24 @@
 #include "raymath.h"
 #include "sdl.h"
 #include "map.h"
+#include "player.h"
 
 bool quit = false;
 
 int main(void)
 {
 	sdl_init();
+	player_init();
+
 	while ( !quit )
 	{
 		sdl_do_events();
+		player_update();
+
 		sdl_begin_draw();
 		
 		map_draw();
+		player_draw();
 
 		sdl_end_draw();
 	}
