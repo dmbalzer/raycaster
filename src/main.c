@@ -1,6 +1,6 @@
-#include <stdbool.h>
 #define RAYMATH_IMPLEMENTATION
 #include "raymath.h"
+#include <stdbool.h>
 #include "sdl.h"
 #include "map.h"
 #include "player.h"

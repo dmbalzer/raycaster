@@ -14,7 +14,7 @@ void sdl_init(void)
 		SDL_Log("%s", SDL_GetError()); exit(-1);
 	}
 	
-	if ( !SDL_CreateWindowAndRenderer("Raycaster", 960,640,0,&window,&renderer) )
+	if ( !SDL_CreateWindowAndRenderer("Raycaster", WINDOW_W, WINDOW_H, 0, &window, &renderer) )
 	{
 		SDL_Log("%s", SDL_GetError()); exit(-1);
 	}
