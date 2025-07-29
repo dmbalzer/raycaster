@@ -6,6 +6,7 @@
 #include "player.h"
 
 bool quit = false;
+int dir_keys[4] = { 0 };
 
 int main(void)
 {

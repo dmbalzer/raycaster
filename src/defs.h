@@ -24,4 +24,10 @@
 #define SCREEN_W 240
 #define SCREEN_H 160
 
+/* INPUT */
+#define LEFT  0
+#define RIGHT 1
+#define UP    2
+#define DOWN  3
+
 #endif // DEFS_INCLUDED

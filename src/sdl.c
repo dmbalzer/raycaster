@@ -7,6 +7,8 @@ SDL_Renderer* renderer = NULL;
 extern bool quit;
 float frametime = 0.0f;
 
+extern int dir_keys[4];
+
 void sdl_init(void)
 {
 	if ( !SDL_Init(SDL_INIT_VIDEO) )
@@ -27,13 +29,25 @@ void sdl_init(void)
 
 void sdl_do_events(void)
 {
-	SDL_Event ev;
-	while ( SDL_PollEvent(&ev) )
+	for ( int i = 0; i < 4; i++ ) dir_keys[i] = 0;
+
+	SDL_Event event;
+	while ( SDL_PollEvent(&event) )
 	{
-		switch ( ev.type )
+		switch ( event.type )
 		{
 			case SDL_EVENT_QUIT:
 				quit = true;
+			break;
+			case SDL_EVENT_KEY_DOWN:
+				switch ( event.key.key )
+				{
+					case SDLK_ESCAPE: quit = true; break;
+					case SDLK_LEFT: dir_keys[LEFT] = 1; break;
+					case SDLK_RIGHT: dir_keys[RIGHT] = 1; break;
+					case SDLK_UP: dir_keys[UP] = 1; break;
+					case SDLK_DOWN: dir_keys[DOWN] = 1; break;
+				}
 			break;
 		}
 	}
