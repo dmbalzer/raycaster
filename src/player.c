@@ -9,7 +9,6 @@ extern int dir_keys[4];
 
 static Vector2 pos = { 0 };
 static Vector2 dir = { 0 };
-static Vector2 cam = { 0 };
 static const float screen_dist = SCREEN_W / 2 / tan(FOV / 2);
 
 void player_init(void)
@@ -18,12 +17,12 @@ void player_init(void)
 	pos.y = MAP_H * TILE_SIZE / 2;
 	
 	dir.y = 1;	
+	dir = Vector2Scale(dir, screen_dist);
 }
 
 void player_update(void)
 {
-	dir = Vector2Rotate(dir, (dir_keys[RIGHT] - dir_keys[LEFT]) * frametime);
-	cam = Vector2Rotate(dir, PI / 2);
+	dir = Vector2Rotate(dir, 1 * frametime);
 }
 
 void player_draw(void)
@@ -35,13 +34,9 @@ void player_draw(void)
 
 	/* Draw Scaled Direction Vector */
 	SDL_SetRenderDrawColor(renderer, GREEN);
-	Vector2 dir_start = (Vector2){ pos.x + 4, pos.y + 4 };
-	Vector2 dir_end   = Vector2Add(dir_start, Vector2Scale(dir, screen_dist));
-	SDL_RenderLine(renderer, dir_start.x, dir_start.y, dir_end.x, dir_end.y);
+	Vector2 start = (Vector2){ pos.x, pos.y };
+	Vector2 end = Vector2Add(start, dir);
+	SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
 
-	/* Draw Camera Vector */
-	SDL_SetRenderDrawColor(renderer, RED);
-	Vector2 cam_start = Vector2Subtract(dir_end, Vector2Scale(cam, SCREEN_W / 2));
-	Vector2 cam_end = Vector2Add(cam_start, Vector2Scale(cam, SCREEN_W));
-	SDL_RenderLine(renderer, cam_start.x, cam_start.y, cam_end.x, cam_end.y);
+
 }
