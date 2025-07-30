@@ -7,6 +7,7 @@ extern SDL_Renderer* renderer;
 extern Vector2 pos;
 extern bool* keys;
 extern float frametime;
+extern const int map_data[];
 
 Vector2 dir = { 0 };
 Vector2 plane = { 0 };
