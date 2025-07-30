@@ -12,7 +12,7 @@ extern const int map_data[];
 static Vector2 pos = { 0 };
 static Vector2 dir = { 0 };
 static Vector2 plane = { 0 };
-static const float spd = 60.0f;
+static float spd = 60.0f;
 
 void player_init(void)
 {
@@ -27,14 +27,18 @@ void player_update(void)
 {
 	/* Rotate direction with right and left keys */
 	dir = Vector2Rotate(dir, ( keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT] ) * frametime);
+	plane = Vector2Rotate(plane, ( keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT] ) * frametime);
 
 	/* Move player in direction with up and down keys */
 	Vector2 vel = Vector2Scale(dir, (keys[SDL_SCANCODE_UP] - keys[SDL_SCANCODE_DOWN]) * spd * frametime);
+	
+	/* Check x movement collission */
 	{
 		int map_x = (int)((pos.x + vel.x) / TILE_SIZE);
 		int map_y = (int)(pos.y / TILE_SIZE);
 		if ( !map_data[ map_x + map_y * MAP_W ] ) pos.x += vel.x;
 	}
+	/* Check y movement collission */
 	{
 		int map_x = (int)(pos.x / TILE_SIZE);
 		int map_y = (int)((pos.y + vel.y) / TILE_SIZE);
@@ -51,8 +55,13 @@ void player_draw(void)
 
 	/* Draw Scaled Direction Vector */
 	SDL_SetRenderDrawColor(renderer, GREEN);
-	Vector2 end = Vector2Add(pos, Vector2Scale(dir, 40));
-	SDL_RenderLine(renderer, pos.x, pos.y, end.x, end.y);
+	Vector2 dir_end = Vector2Add(pos, Vector2Scale(dir, 40));
+	SDL_RenderLine(renderer, pos.x, pos.y, dir_end.x, dir_end.y);
 
+	/* Draw Scaled Plane Vector */
+	SDL_SetRenderDrawColor(renderer, RED);
+	Vector2 plane_start = Vector2Subtract(dir_end, Vector2Scale(plane, 40));
+	Vector2 plane_end = Vector2Add(dir_end, Vector2Scale(plane, 40));
+	SDL_RenderLine(renderer, plane_start.x, plane_start.y, plane_end.x, plane_end.y);
 
 }
