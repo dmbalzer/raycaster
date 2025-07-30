@@ -4,10 +4,10 @@
 
 static SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
-extern bool quit;
+bool quit = false;
 float frametime = 0.0f;
 
-extern int dir_keys[4];
+const bool* keys;
 
 void sdl_init(void)
 {
@@ -25,12 +25,17 @@ void sdl_init(void)
 	{
 		SDL_Log("%s", SDL_GetError()); exit(-1);
 	}
+
+	keys = SDL_GetKeyboardState(NULL);
+
+	if ( keys == NULL )
+	{
+		SDL_Log("%s", SDL_GetError()); exit(-1);
+	}
 }
 
 void sdl_do_events(void)
 {
-	for ( int i = 0; i < 4; i++ ) dir_keys[i] = 0;
-
 	SDL_Event event;
 	while ( SDL_PollEvent(&event) )
 	{
@@ -43,10 +48,6 @@ void sdl_do_events(void)
 				switch ( event.key.key )
 				{
 					case SDLK_ESCAPE: quit = true; break;
-					case SDLK_LEFT: dir_keys[LEFT] = 1; break;
-					case SDLK_RIGHT: dir_keys[RIGHT] = 1; break;
-					case SDLK_UP: dir_keys[UP] = 1; break;
-					case SDLK_DOWN: dir_keys[DOWN] = 1; break;
 				}
 			break;
 		}

@@ -5,8 +5,7 @@
 #include "map.h"
 #include "player.h"
 
-bool quit = false;
-int dir_keys[4] = { 0 };
+extern bool quit;
 
 int main(void)
 {

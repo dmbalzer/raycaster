@@ -5,24 +5,30 @@
 
 extern SDL_Renderer* renderer;
 extern float frametime;
-extern int dir_keys[4];
+extern bool* keys;
 
 static Vector2 pos = { 0 };
 static Vector2 dir = { 0 };
-static const float screen_dist = SCREEN_W / 2 / tan(FOV / 2);
+static Vector2 plane = { 0 };
+static const float spd = 60.0f;
 
 void player_init(void)
 {
 	pos.x = MAP_W * TILE_SIZE / 2;
 	pos.y = MAP_H * TILE_SIZE / 2;
 	
-	dir.y = 1;	
-	dir = Vector2Scale(dir, screen_dist);
+	dir.x = 1;	
+	plane.y = 0.66;
 }
 
 void player_update(void)
 {
-	dir = Vector2Rotate(dir, 1 * frametime);
+	/* Rotate direction with right and left keys */
+	dir = Vector2Rotate(dir, ( keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT] ) * frametime);
+
+	/* Move player in direction with up and down keys */
+	float vel = (keys[SDL_SCANCODE_UP] - keys[SDL_SCANCODE_DOWN]) * spd * frametime;
+	pos = Vector2Add(pos, Vector2Scale(dir, vel));
 }
 
 void player_draw(void)
@@ -34,9 +40,8 @@ void player_draw(void)
 
 	/* Draw Scaled Direction Vector */
 	SDL_SetRenderDrawColor(renderer, GREEN);
-	Vector2 start = (Vector2){ pos.x, pos.y };
-	Vector2 end = Vector2Add(start, dir);
-	SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+	Vector2 end = Vector2Add(pos, Vector2Scale(dir, 40));
+	SDL_RenderLine(renderer, pos.x, pos.y, end.x, end.y);
 
 
 }
