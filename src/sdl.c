@@ -64,7 +64,7 @@ void sdl_end_draw(void)
 	SDL_RenderPresent(renderer);
 	static Uint64 prev = 0;
 	const Uint64 now = SDL_GetTicks();
-	frametime = ( prev - now ) / 1000.0f;
+	frametime = ( now - prev ) / 1000.0f;
 	prev = now;
 }
 

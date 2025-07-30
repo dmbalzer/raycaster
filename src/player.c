@@ -29,7 +29,7 @@ void player_draw(void)
 {
 	/* Draw Player */
 	SDL_SetRenderDrawColor(renderer, BLUE);
-	SDL_FRect dst = (SDL_FRect){ pos.x, pos.y, 8, 8 };
+	SDL_FRect dst = (SDL_FRect){ pos.x - 4, pos.y - 4, 9, 9 };
 	SDL_RenderFillRect(renderer, &dst);
 
 	/* Draw Scaled Direction Vector */
