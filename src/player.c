@@ -6,6 +6,8 @@
 extern SDL_Renderer* renderer;
 extern float frametime;
 extern bool* keys;
+extern const int map_data[];
+
 
 static Vector2 pos = { 0 };
 static Vector2 dir = { 0 };
@@ -27,8 +29,17 @@ void player_update(void)
 	dir = Vector2Rotate(dir, ( keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT] ) * frametime);
 
 	/* Move player in direction with up and down keys */
-	float vel = (keys[SDL_SCANCODE_UP] - keys[SDL_SCANCODE_DOWN]) * spd * frametime;
-	pos = Vector2Add(pos, Vector2Scale(dir, vel));
+	Vector2 vel = Vector2Scale(dir, (keys[SDL_SCANCODE_UP] - keys[SDL_SCANCODE_DOWN]) * spd * frametime);
+	{
+		int map_x = (int)((pos.x + vel.x) / TILE_SIZE);
+		int map_y = (int)(pos.y / TILE_SIZE);
+		if ( !map_data[ map_x + map_y * MAP_W ] ) pos.x += vel.x;
+	}
+	{
+		int map_x = (int)(pos.x / TILE_SIZE);
+		int map_y = (int)((pos.y + vel.y) / TILE_SIZE);
+		if ( !map_data[ map_x + map_y * MAP_W ] ) pos.y += vel.y;
+	}
 }
 
 void player_draw(void)
