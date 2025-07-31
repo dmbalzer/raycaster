@@ -14,11 +14,13 @@ Vector2 plane = { 0 };
 Vector2 dir_end = { 0 };
 Vector2 plane_start = { 0 };
 Vector2 plane_end = { 0 };
+static float fov = 0.0f;
 
 void raycast_init(void)
 {
-	dir.x = 1;	
-	plane.y = 0.66;
+	dir.x = 1.0f;	
+	plane.y = 0.66f;
+	fov = 2 * atan2f(0.66f, 1.0f);
 }
 
 void raycast_update(void)
@@ -38,8 +40,17 @@ void raycast_draw(void)
 	/* Draw Scaled Direction Vector */
 	SDL_SetRenderDrawColor(renderer, GREEN);
 	SDL_RenderLine(renderer, pos.x, pos.y, dir_end.x, dir_end.y);
-
+	
 	/* Draw Scaled Plane Vector */
 	SDL_SetRenderDrawColor(renderer, RED);
 	SDL_RenderLine(renderer, plane_start.x, plane_start.y, plane_end.x, plane_end.y);
+	
+	/* Draw Rays */
+	SDL_SetRenderDrawColor(renderer, BLUE);
+	Vector2 cam = dir_end;
+	for ( int i = 0; i < 10; i++ )
+	{
+		SDL_RenderLine(renderer, pos.x, pos.y, cam.x, cam.y);
+		cam = Vector2Add(cam, Vector2Scale(plane, 1/10));
+	}
 }
