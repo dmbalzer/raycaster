@@ -10,6 +10,7 @@
 #define YELLOW  0xFF,0xFF,0x00,0xFF
 #define ORANGE  0xFF,0xA5,0x00,0xFF
 #define MAGENTA 0xFF,0x00,0xFF,0xFF
+#define GRAY    0x50,0x50,0x50,0xFF
 
 #define WINDOW_W 960
 #define WINDOW_H 640
@@ -18,7 +19,18 @@
 
 #define MAP_W 15
 #define MAP_H 11
-#define TILE_SIZE 24
+#define TILE_SIZE 32
+
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static float frametime = 0.0f;
+static bool quit = false;
+static const bool* keys = NULL;
+
+static Vector2 pos = { 0 };
+static Vector2 dir = { 0 };
+static Vector2 plane = { 0 };
+static const float spd = 2.0f;
 
 static const int map[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -33,12 +45,6 @@ static const int map[] = {
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
-
-static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
-static float frametime = 0.0f;
-static bool quit = false;
-static const bool* keys = NULL;
 
 static void sdl_init(void) {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -76,13 +82,8 @@ static void sdl_quit(void) {
 	SDL_Quit();
 }
 
-static Vector2 pos = { 0 };
-static Vector2 dir = { 0 };
-static Vector2 plane = { 0 };
-static const float spd = 8.0f;
-
 static void player_init(void) {
-	pos.x = 10.0f; pos.y = 10.0f;
+	pos.x = 5.5f; pos.y = 5.5f;
 }
 
 static void player_update(void) {
@@ -133,6 +134,36 @@ static void ray_draw(void) {
 		pos.y * TILE_SIZE + dir.y * 100);
 }
 
+static void map_draw(void) {
+	SDL_SetRenderDrawColor(renderer, WHITE);
+	for ( int x = 0; x < MAP_W; x++ ) {
+		for ( int y = 0; y < MAP_H; y++ ) {
+			if ( map[ x + y * MAP_W ] == 0 ) continue;
+			SDL_FRect dst = (SDL_FRect){
+				x * TILE_SIZE,
+				y * TILE_SIZE,
+				TILE_SIZE,
+				TILE_SIZE};
+			SDL_RenderFillRect(renderer, &dst);
+		}
+	}
+	SDL_SetRenderDrawColor(renderer, GRAY);
+	for ( int x = 0; x < MAP_W; x++ ) {
+		for ( int y = 0; y < MAP_H; y++ ) {
+			SDL_RenderLine(renderer,
+				x * TILE_SIZE,
+				0,
+				x * TILE_SIZE,
+				MAP_H * TILE_SIZE);
+			SDL_RenderLine(renderer,
+				0,
+				y * TILE_SIZE,
+				MAP_W * TILE_SIZE,
+				y * TILE_SIZE);
+		}
+	}
+}
+
 int main(void) {
 	sdl_init();
 	player_init();
@@ -145,6 +176,7 @@ int main(void) {
 		
 		sdl_begin_draw();
 		
+		map_draw();
 		player_draw();
 		ray_draw();
 
