@@ -115,7 +115,7 @@ static void ray_update(void) {
 }
 
 static void ray_draw(void) {
-	SDL_SetRenderDrawColor(renderer, ORANGE);
+	SDL_SetRenderDrawColor(renderer, GREEN);
 	for ( int i = 0; i < SCREEN_W; i++ ) {
 		float cam_x = 2 * i / (float)SCREEN_W - 1;
 		Vector2 ray_dir = Vector2Add(Vector2Scale(plane, cam_x), dir);
