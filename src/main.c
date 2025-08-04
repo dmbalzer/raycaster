@@ -21,17 +21,6 @@
 #define MAP_H 11
 #define TILE_SIZE 32
 
-static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
-static float frametime = 0.0f;
-static bool quit = false;
-static const bool* keys = NULL;
-
-static Vector2 pos = { 0 };
-static Vector2 dir = { 0 };
-static Vector2 plane = { 0 };
-static const float spd = 2.0f;
-
 static const int map[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
@@ -46,41 +35,22 @@ static const int map[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
-static void sdl_init(void) {
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer("Raycaster", WINDOW_W, WINDOW_H, 0, &window, &renderer);
-	SDL_SetRenderVSync(renderer, 1);
-	keys = SDL_GetKeyboardState(NULL);
-}
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static float frametime = 0.0f;
+static bool quit = false;
+static const bool* keys = NULL;
 
-static void sdl_update(void) {
-	SDL_Event event;
-	while ( SDL_PollEvent(&event) ) {
-		switch ( event.type ) {
-			case SDL_EVENT_QUIT: quit = true; break;
-			case SDL_EVENT_KEY_DOWN: if ( event.key.key == SDLK_ESCAPE ) quit = true; break;
-		}
-	}
-}
+static Vector2 pos = { 0 };
+static Vector2 dir = { 0 };
+static Vector2 plane = { 0 };
+static const float spd = 2.0f;
 
-static void sdl_begin_draw(void) {
-	SDL_SetRenderDrawColor(renderer, BLACK);
-	SDL_RenderClear(renderer);
-}
-
-static void sdl_end_draw(void) {
-	SDL_RenderPresent(renderer);
-	static Uint64 prev = 0;
-	const Uint64 now = SDL_GetTicks();
-	frametime = (now - prev) / 1000.0f;
-	prev = now;
-}
-
-static void sdl_quit(void) {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-}
+static void sdl_init(void);
+static void sdl_update(void);
+static void sdl_begin_draw(void);
+static void sdl_end_draw(void);
+static void sdl_quit(void);
 
 static void player_init(void) {
 	pos.x = 5.5f; pos.y = 5.5f;
@@ -89,7 +59,14 @@ static void player_init(void) {
 static void player_update(void) {
 	bool up    = keys[SDL_SCANCODE_UP];
 	bool down  = keys[SDL_SCANCODE_DOWN];
-	pos = Vector2Add(pos, Vector2Scale(dir, (up - down) * spd * frametime));
+
+	Vector2 vel = Vector2Scale(dir, (up - down) * spd * frametime);
+	/* Check x collision */
+	if ( map[(int)(pos.x + vel.x) + (int)pos.y * MAP_W] != 0 ) vel.x = 0;
+	/* Check y collision */
+	if ( map[(int)pos.x + (int)(pos.y + vel.y) * MAP_W] != 0 ) vel.y = 0;
+
+	pos = Vector2Add(pos, vel);
 }
 
 static void player_draw(void) {
@@ -117,21 +94,14 @@ static void ray_update(void) {
 static void ray_draw(void) {
 	SDL_SetRenderDrawColor(renderer, GREEN);
 	for ( int i = 0; i < SCREEN_W; i++ ) {
-		float cam_x = 2 * i / (float)SCREEN_W - 1;
-		Vector2 ray_dir = Vector2Add(Vector2Scale(plane, cam_x), dir);
-		SDL_RenderLine(renderer,
+		float x = 2 * i / (float)SCREEN_W - 1;
+		Vector2 rd = Vector2Add(Vector2Scale(plane, x), dir);
+		SDL_RenderLine(renderer, 
 			pos.x * TILE_SIZE,
 			pos.y * TILE_SIZE,
-			pos.x * TILE_SIZE + ray_dir.x * 100,
-			pos.y * TILE_SIZE + ray_dir.y * 100);
+			(pos.x + rd.x) * TILE_SIZE,
+			(pos.y + rd.y) * TILE_SIZE);
 	}
-	
-	SDL_SetRenderDrawColor(renderer, BLUE);
-	SDL_RenderLine(renderer,
-		pos.x * TILE_SIZE,
-		pos.y * TILE_SIZE,
-		pos.x * TILE_SIZE + dir.x * 100,
-		pos.y * TILE_SIZE + dir.y * 100);
 }
 
 static void map_draw(void) {
@@ -185,4 +155,43 @@ int main(void) {
 	
 	sdl_quit();
 	return 0;
+}
+
+/*************************************************
+ * SDL
+ *************************************************/
+static void sdl_init(void) {
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_CreateWindowAndRenderer("Raycaster", WINDOW_W, WINDOW_H, 0, &window, &renderer);
+	SDL_SetRenderVSync(renderer, 1);
+	keys = SDL_GetKeyboardState(NULL);
+}
+
+static void sdl_update(void) {
+	SDL_Event event;
+	while ( SDL_PollEvent(&event) ) {
+		switch ( event.type ) {
+			case SDL_EVENT_QUIT: quit = true; break;
+			case SDL_EVENT_KEY_DOWN: if ( event.key.key == SDLK_ESCAPE ) quit = true; break;
+		}
+	}
+}
+
+static void sdl_begin_draw(void) {
+	SDL_SetRenderDrawColor(renderer, BLACK);
+	SDL_RenderClear(renderer);
+}
+
+static void sdl_end_draw(void) {
+	SDL_RenderPresent(renderer);
+	static Uint64 prev = 0;
+	const Uint64 now = SDL_GetTicks();
+	frametime = (now - prev) / 1000.0f;
+	prev = now;
+}
+
+static void sdl_quit(void) {
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
