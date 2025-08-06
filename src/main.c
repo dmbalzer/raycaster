@@ -43,7 +43,6 @@ static const bool* keys = NULL;
 
 static Vector2 pos = { 0 };
 static Vector2 dir = { 0 };
-static Vector2 plane = { 0 };
 static const float spd = 2.0f;
 
 static void sdl_init(void);
@@ -54,13 +53,20 @@ static void sdl_quit(void);
 
 static void player_init(void) {
 	pos.x = 5.5f; pos.y = 5.5f;
+	dir.x = 0.0f, dir.y = 1.0f;
 }
 
 static void player_update(void) {
 	bool up    = keys[SDL_SCANCODE_UP];
 	bool down  = keys[SDL_SCANCODE_DOWN];
+	bool right = keys[SDL_SCANCODE_RIGHT];
+	bool left  = keys[SDL_SCANCODE_LEFT];
+	
+	dir = Vector2Rotate(dir, (right - left) * frametime);
 
-	Vector2 vel = Vector2Scale(dir, (up - down) * spd * frametime);
+	Vector2 vel = Vector2Scale(dir, (up - down));
+	vel = Vector2Normalize(vel);
+	vel = Vector2Scale(dir, (up - down) * spd * frametime);
 	/* Check x collision */
 	if ( map[(int)(pos.x + vel.x) + (int)pos.y * MAP_W] != 0 ) vel.x = 0;
 	/* Check y collision */
@@ -76,32 +82,13 @@ static void player_draw(void) {
 		pos.y * TILE_SIZE - 4,
 		9, 9 };
 	SDL_RenderFillRect(renderer, &dst);
-}
 
-static void ray_init(void) {
-	dir.x = 1.0f;
-	plane.y = 0.66f;
-}
-
-static void ray_update(void) {
-	bool left  = keys[SDL_SCANCODE_LEFT];
-	bool right = keys[SDL_SCANCODE_RIGHT];
-	
-	dir = Vector2Rotate(dir, (right - left) * frametime);
-	plane = Vector2Rotate(plane, (right - left) * frametime);
-}
-
-static void ray_draw(void) {
-	SDL_SetRenderDrawColor(renderer, GREEN);
-	for ( int i = 0; i < SCREEN_W; i++ ) {
-		float x = 2 * i / (float)SCREEN_W - 1;
-		Vector2 rd = Vector2Add(Vector2Scale(plane, x), dir);
-		SDL_RenderLine(renderer, 
-			pos.x * TILE_SIZE,
-			pos.y * TILE_SIZE,
-			(pos.x + rd.x) * TILE_SIZE,
-			(pos.y + rd.y) * TILE_SIZE);
-	}
+	SDL_SetRenderDrawColor(renderer, RED);
+	SDL_RenderLine(renderer,
+		pos.x * TILE_SIZE,
+		pos.y * TILE_SIZE,
+		(pos.x + dir.x) * TILE_SIZE,
+		(pos.y + dir.y) * TILE_SIZE);
 }
 
 static void map_draw(void) {
@@ -137,18 +124,18 @@ static void map_draw(void) {
 int main(void) {
 	sdl_init();
 	player_init();
-	ray_init();
 	
 	while ( !quit ) {
 		sdl_update();
 		player_update();
-		ray_update();
 		
 		sdl_begin_draw();
 		
 		map_draw();
 		player_draw();
-		ray_draw();
+
+		SDL_SetRenderDrawColor(renderer, RED);
+		SDL_RenderDebugTextFormat(renderer, 256,256, "%f", Vector2Angle((Vector2){ 1, 0 }, dir));
 
 		sdl_end_draw();
 	}
