@@ -3,7 +3,7 @@
 
 #include "raymath.h"
 
-Vector2 ray_cast(Vector2 ray_dir);
+void ray_update(void);
 void ray_draw(void);
 
 #endif // RAY_INCLUDED

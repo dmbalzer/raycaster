@@ -13,7 +13,9 @@ extern Vector2 plane;
 /* map.c */
 extern const int map[];
 
-Vector2 ray_cast(Vector2 ray_dir) {
+Vector2 rays[SCREEN_W] = { 0 };
+
+static Vector2 _ray_cast(Vector2 ray_dir) {
 	/******************************************************
 	 * Horizontal Side Checks
 	 ******************************************************/
@@ -77,22 +79,27 @@ Vector2 ray_cast(Vector2 ray_dir) {
 	return ray;
 }
 
-void ray_draw(void) {
-	for ( int i = 0; i < SCREEN_W; i++ ) {
+void ray_update(void) {
+    for ( int i = 0; i < SCREEN_W; i++ ) {
 		float x = 2 * i / (float)SCREEN_W - 1;
 		Vector2 ray_dir = (Vector2){
 			.x = dir.x + plane.x * x,
 			.y = dir.y + plane.y * x
 		};
 
-		Vector2 ray = ray_cast(ray_dir);
+        rays[i] = _ray_cast(ray_dir);
+    }
+}
+
+void ray_draw(void) {
+	for ( int i = 0; i < SCREEN_W; i++ ) {
 
 		/* Draw Ray */
 		SDL_SetRenderDrawColor(renderer, GREEN);
 		SDL_RenderLine(renderer,
 			pos.x * TILE_SIZE,
 			pos.y * TILE_SIZE,
-			(pos.x + ray.x) * TILE_SIZE,
-			(pos.y + ray.y) * TILE_SIZE);
+			(pos.x + rays[i].x) * TILE_SIZE,
+			(pos.y + rays[i].y) * TILE_SIZE);
 	}
 }

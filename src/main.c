@@ -28,6 +28,7 @@ int main(void) {
 	while ( !quit ) {
 		sdl_update();
 		player_update();
+		ray_update();
 
 		sdl_begin_draw();
 
