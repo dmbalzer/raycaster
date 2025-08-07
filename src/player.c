@@ -3,9 +3,12 @@
 #include <SDL3/SDL.h>
 #include "raymath.h"
 
+/* sdl.c */
 extern SDL_Renderer* renderer;
 extern float frametime;
 extern const bool* keys;
+
+/* map.c */
 extern const int map[];
 
 Vector2 pos = { 0 };

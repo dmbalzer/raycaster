@@ -2,6 +2,7 @@
 #include "defs.h"
 #include <SDL3/SDL.h>
 
+/* sdl.c */
 extern SDL_Renderer* renderer;
 
 const int map[] = {
