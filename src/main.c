@@ -1,25 +1,8 @@
 #include <SDL3/SDL.h>
+#include "defs.h"
 #define RAYMATH_IMPLEMENTATION
 #include "raymath.h"
-
-#define BLACK   0x00,0x00,0x00,0xFF
-#define WHITE   0xFF,0xFF,0xFF,0xFF
-#define RED     0xFF,0x00,0x00,0xFF
-#define GREEN   0x00,0xFF,0x00,0xFF
-#define BLUE    0x00,0x00,0xFF,0xFF
-#define YELLOW  0xFF,0xFF,0x00,0xFF
-#define ORANGE  0xFF,0xA5,0x00,0xFF
-#define MAGENTA 0xFF,0x00,0xFF,0xFF
-#define GRAY    0x50,0x50,0x50,0xFF
-
-#define WINDOW_W 960
-#define WINDOW_H 640
-#define SCREEN_W 240
-#define SCREEN_H 160
-
-#define MAP_W 15
-#define MAP_H 11
-#define TILE_SIZE 32
+#include "sdl.h"
 
 static const int map[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -35,25 +18,20 @@ static const int map[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
-static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
-static float frametime = 0.0f;
-static bool quit = false;
-static const bool* keys = NULL;
+extern SDL_Renderer* renderer;
+extern float frametime;
+extern float quit;
+extern const bool* keys;
 
 static Vector2 pos = { 0 };
 static Vector2 dir = { 0 };
+static Vector2 plane = { 0 };
 static const float spd = 2.0f;
-
-static void sdl_init(void);
-static void sdl_update(void);
-static void sdl_begin_draw(void);
-static void sdl_end_draw(void);
-static void sdl_quit(void);
 
 static void player_init(void) {
 	pos.x = 5.5f; pos.y = 5.5f;
-	dir.x = 0.0f, dir.y = 1.0f;
+	dir.x = 0.0f, dir.y = -1.0f;
+	plane.x = 0.66f, plane.y = 0.0f;
 }
 
 static void player_update(void) {
@@ -61,8 +39,9 @@ static void player_update(void) {
 	bool down  = keys[SDL_SCANCODE_DOWN];
 	bool right = keys[SDL_SCANCODE_RIGHT];
 	bool left  = keys[SDL_SCANCODE_LEFT];
-	
+
 	dir = Vector2Rotate(dir, (right - left) * frametime);
+	plane = Vector2Rotate(plane, (right - left) * frametime);
 
 	Vector2 vel = Vector2Scale(dir, (up - down));
 	vel = Vector2Normalize(vel);
@@ -76,19 +55,89 @@ static void player_update(void) {
 }
 
 static void player_draw(void) {
+	for ( int i = 0; i < SCREEN_W; i++ ) {
+		float x = 2 * i / (float)SCREEN_W - 1;
+		Vector2 ray_dir = (Vector2){
+			.x = dir.x + plane.x * x,
+			.y = dir.y + plane.y * x
+		};
+
+		/******************************************************
+		 * Horizontal Side Checks
+		 ******************************************************/
+		/* Horizontal Side Vector*/
+		Vector2 hside = { 0 };
+		hside.y = ray_dir.y < 0 ? (int)pos.y - pos.y : (int)pos.y - pos.y + 1;
+		hside.x = hside.y / tan(Vector2Angle((Vector2){1.0f, 0.0f}, ray_dir));
+
+		/* Horizontal Step Vector*/
+		Vector2 hstep = { 0 };
+		hstep.y = ray_dir.y < 0 ? -1 : 1;
+		hstep.x = hstep.y / tan(Vector2Angle((Vector2){1.0f, 0.0f}, ray_dir));
+
+		bool hit = false;
+		Vector2 hray = hside;
+		while ( !hit ) {
+			int x = (int)(pos.x + hray.x);
+			if ( x >= MAP_W ) x = MAP_W - 1;
+			if ( x < 0 ) x = 0;
+			int y = ray_dir.y < 0 ? (int)(pos.y + hray.y) - 1 : (int)(pos.y + hray.y);
+			if ( y >= MAP_H ) y = MAP_H - 1;
+			if ( y < 0 ) y = 0;
+			if ( map[ x + y * MAP_W ] != 0 ) {
+				
+				break;
+			}
+			hray = Vector2Add(hray, hstep);
+		}
+
+		/******************************************************
+		 * Vertical Side Checks
+		 ******************************************************/
+		/* Vertical Side Vector*/
+		Vector2 vside = { 0 };
+
+		vside.x = ray_dir.x < 0 ? (int)pos.x - pos.x : (int)pos.x - pos.x + 1;
+		vside.y = vside.x * tan(Vector2Angle((Vector2){1.0f, 0.0f}, ray_dir));
+
+		/* Vertical Step Vector*/
+		Vector2 vstep = { 0 };
+		vstep.x = ray_dir.x < 0 ? -1 : 1;
+		vstep.y = vstep.x * tan(Vector2Angle((Vector2){1.0f, 0.0f}, ray_dir));
+
+		hit = false;
+		Vector2 vray = vside;
+		while ( !hit ) {
+			int x = ray_dir.x < 0 ? (int)(pos.x + vray.x) - 1: (int)(pos.x + vray.x);
+			if ( x >= MAP_W ) x = MAP_W - 1;
+			if ( x < 0 ) x = 0;
+			int y = (int)(pos.y + vray.y);
+			if ( y >= MAP_H ) y = MAP_H - 1;
+			if ( y < 0 ) y = 0;
+			if ( map[ x + y * MAP_W ] != 0 ) {
+				
+				break;
+			}
+			vray = Vector2Add(vray, vstep);
+		}
+		
+		Vector2 ray = (Vector2Length(hray) < Vector2Length(vray)) ? hray : vray;
+
+		/* Draw Ray */
+		SDL_SetRenderDrawColor(renderer, GREEN);
+		SDL_RenderLine(renderer,
+			pos.x * TILE_SIZE,
+			pos.y * TILE_SIZE,
+			(pos.x + ray.x) * TILE_SIZE,
+			(pos.y + ray.y) * TILE_SIZE);
+	}
+
 	SDL_SetRenderDrawColor(renderer, BLUE);
 	SDL_FRect dst = (SDL_FRect){
 		pos.x * TILE_SIZE - 4,
 		pos.y * TILE_SIZE - 4,
 		9, 9 };
 	SDL_RenderFillRect(renderer, &dst);
-
-	SDL_SetRenderDrawColor(renderer, RED);
-	SDL_RenderLine(renderer,
-		pos.x * TILE_SIZE,
-		pos.y * TILE_SIZE,
-		(pos.x + dir.x) * TILE_SIZE,
-		(pos.y + dir.y) * TILE_SIZE);
 }
 
 static void map_draw(void) {
@@ -124,61 +173,19 @@ static void map_draw(void) {
 int main(void) {
 	sdl_init();
 	player_init();
-	
+
 	while ( !quit ) {
 		sdl_update();
 		player_update();
-		
+
 		sdl_begin_draw();
-		
+
 		map_draw();
 		player_draw();
 
-		SDL_SetRenderDrawColor(renderer, RED);
-		SDL_RenderDebugTextFormat(renderer, 256,256, "%f", Vector2Angle((Vector2){ 1, 0 }, dir));
-
 		sdl_end_draw();
 	}
-	
+
 	sdl_quit();
 	return 0;
-}
-
-/*************************************************
- * SDL
- *************************************************/
-static void sdl_init(void) {
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer("Raycaster", WINDOW_W, WINDOW_H, 0, &window, &renderer);
-	SDL_SetRenderVSync(renderer, 1);
-	keys = SDL_GetKeyboardState(NULL);
-}
-
-static void sdl_update(void) {
-	SDL_Event event;
-	while ( SDL_PollEvent(&event) ) {
-		switch ( event.type ) {
-			case SDL_EVENT_QUIT: quit = true; break;
-			case SDL_EVENT_KEY_DOWN: if ( event.key.key == SDLK_ESCAPE ) quit = true; break;
-		}
-	}
-}
-
-static void sdl_begin_draw(void) {
-	SDL_SetRenderDrawColor(renderer, BLACK);
-	SDL_RenderClear(renderer);
-}
-
-static void sdl_end_draw(void) {
-	SDL_RenderPresent(renderer);
-	static Uint64 prev = 0;
-	const Uint64 now = SDL_GetTicks();
-	frametime = (now - prev) / 1000.0f;
-	prev = now;
-}
-
-static void sdl_quit(void) {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
 }
