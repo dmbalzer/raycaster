@@ -1,5 +1,4 @@
-#include <SDL3/SDL.h>
-#include "defs.h"
+#include <stdbool.h>
 #define RAYMATH_IMPLEMENTATION
 #include "raymath.h"
 #include "sdl.h"
@@ -7,19 +6,7 @@
 #include "player.h"
 #include "ray.h"
 
-/* sdl.c */
-extern SDL_Renderer* renderer;
-extern float frametime;
-extern float quit;
-extern const bool* keys;
-
-/* map.c */
-extern const int map[];
-
-/* player.c */
-extern Vector2 pos;
-extern Vector2 dir;
-extern Vector2 plane;
+extern bool quit;
 
 int main(void) {
 	sdl_init();

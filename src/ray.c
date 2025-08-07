@@ -14,8 +14,9 @@ extern Vector2 plane;
 extern const int map[];
 
 Vector2 rays[SCREEN_W] = { 0 };
+bool ray_sides[SCREEN_W] = { 0 };
 
-static Vector2 _ray_cast(Vector2 ray_dir) {
+static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 	/******************************************************
 	 * Horizontal Side Checks
 	 ******************************************************/
@@ -75,7 +76,8 @@ static Vector2 _ray_cast(Vector2 ray_dir) {
 		vray = Vector2Add(vray, vstep);
 	}
 	
-	Vector2 ray = (Vector2Length(hray) < Vector2Length(vray)) ? hray : vray;
+	*h_hit = (Vector2Length(hray) < Vector2Length(vray));
+	Vector2 ray = *h_hit ? hray : vray;
 	return ray;
 }
 
@@ -87,7 +89,7 @@ void ray_update(void) {
 			.y = dir.y + plane.y * x
 		};
 
-        rays[i] = _ray_cast(ray_dir);
+        rays[i] = _ray_cast(ray_dir, &ray_sides[i]);
     }
 }
 
