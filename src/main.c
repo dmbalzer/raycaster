@@ -34,13 +34,14 @@ int main(void) {
 		sdl_update();
 		player_update();
 		ray_update();
-		for ( int i = 0; i < SCREEN_W * SCREEN_H; i++ ) buffer[i] = 0xA0A0A0F0;
+		for ( int i = 0; i < SCREEN_W * SCREEN_H / 2; i++ ) buffer[i] = 0x888888FF;
+		for ( int i = SCREEN_W * SCREEN_H / 2; i < SCREEN_W * SCREEN_H - 1; i++ ) buffer[i] = 0x8A8A8AFF;
 		for ( int x = 0; x < SCREEN_W; x++ ) {
 			
 			for ( int y = 0; y < wall_strip_heights[x]; y++ ) {
-				int offset = SCREEN_H - (wall_strip_heights[2] / 2) > SCREEN_H ? SCREEN_H : (wall_strip_heights[2] / 2);
+				int offset = SCREEN_H / 2 - (wall_strip_heights[x] > SCREEN_H ? SCREEN_H : wall_strip_heights[x]) / 2;
 				if ( y + offset >= SCREEN_H ) continue;
-				buffer[x + (y + offset) * SCREEN_W] = ray_sides[x] ? 0xFFFFFFFF : 0xE0E0E0FF;
+				buffer[x + (y + offset) * SCREEN_W] = ray_sides[x] ? 0xF0F0F0FF : 0xF8F8F8FF;
 			}
 		}
 		SDL_UpdateTexture(buffer_texture, NULL, buffer, 4 * SCREEN_W);
