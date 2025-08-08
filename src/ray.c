@@ -14,6 +14,7 @@ extern Vector2 plane;
 extern const int map[];
 
 Vector2 rays[SCREEN_W] = { 0 };
+float perp_dists[SCREEN_W] = { 0 };
 bool ray_sides[SCREEN_W] = { 0 };
 
 static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
@@ -58,7 +59,7 @@ static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 	/* Vertical Step Vector*/
 	Vector2 vstep = { 0 };
 	vstep.x = ray_dir.x < 0 ? -1 : 1;
-	vstep.y = vstep.x * tan(Vector2Angle((Vector2){1.0f, 0.0f}, ray_dir));
+	vstep.y = vstep.x * tanf(Vector2Angle((Vector2){1.0f, 0.0f}, ray_dir));
 
 	hit = false;
 	Vector2 vray = vside;
@@ -81,15 +82,22 @@ static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 	return ray;
 }
 
+float _get_perp_dist(Vector2 cam_plane, Vector2 ray, bool h_hit) {
+	float angle = Vector2Angle(ray, dir);
+	return Vector2Length(ray) * cosf(angle);
+}
+
 void ray_update(void) {
     for ( int i = 0; i < SCREEN_W; i++ ) {
 		float x = 2 * i / (float)SCREEN_W - 1;
+		Vector2 cam_plane = Vector2Scale(plane, x);
 		Vector2 ray_dir = (Vector2){
-			.x = dir.x + plane.x * x,
-			.y = dir.y + plane.y * x
+			.x = dir.x + cam_plane.x,
+			.y = dir.y + cam_plane.y
 		};
 
         rays[i] = _ray_cast(ray_dir, &ray_sides[i]);
+		perp_dists[i] = _get_perp_dist(cam_plane, rays[i], ray_sides[i]);
     }
 }
 
