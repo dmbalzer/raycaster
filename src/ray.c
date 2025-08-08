@@ -13,10 +13,10 @@ extern Vector2 plane;
 /* map.c */
 extern const int map[];
 
-Vector2 rays[SCREEN_W] = { 0 };
-float perp_dists[SCREEN_W] = { 0 };
+static Vector2 rays[SCREEN_W] = { 0 };
+static float screen_dist = 0.0f;
+
 bool ray_sides[SCREEN_W] = { 0 };
-float screen_dist = 0.0f;
 float wall_strip_heights[SCREEN_W] = { 0 };
 
 static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
@@ -104,8 +104,8 @@ void ray_update(void) {
 		};
 
         rays[i] = _ray_cast(ray_dir, &ray_sides[i]);
-		perp_dists[i] = _get_perp_dist(cam_plane, rays[i], ray_sides[i]);
-		wall_strip_heights[i] = 1 / perp_dists[i] * screen_dist;
+		float perp_dist = _get_perp_dist(cam_plane, rays[i], ray_sides[i]);
+		wall_strip_heights[i] = 1 / perp_dist * screen_dist;
     }
 }
 

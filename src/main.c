@@ -9,7 +9,6 @@ extern SDL_Renderer* renderer;
 Uint32 buffer[SCREEN_W * SCREEN_H] = { 0 };
 SDL_Texture* buffer_texture = NULL;
 extern bool ray_sides[SCREEN_W];
-extern float perp_dists[SCREEN_W];
 extern float wall_strip_heights[SCREEN_W];
 /********************/
 #include <stdbool.h>
