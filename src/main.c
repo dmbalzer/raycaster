@@ -10,7 +10,7 @@ Uint32 buffer[SCREEN_W * SCREEN_H] = { 0 };
 SDL_Texture* buffer_texture = NULL;
 extern bool ray_sides[SCREEN_W];
 extern float perp_dists[SCREEN_W];
-
+extern float wall_strip_heights[SCREEN_W];
 /********************/
 #include <stdbool.h>
 
@@ -36,14 +36,12 @@ int main(void) {
 		ray_update();
 		for ( int i = 0; i < SCREEN_W * SCREEN_H; i++ ) buffer[i] = 0xA0A0A0F0;
 		for ( int x = 0; x < SCREEN_W; x++ ) {
-			float wall_height = TILE_SIZE * 2 / perp_dists[x];
-			for ( int y = 0; y < wall_height; y++ ) {
-				if ( y >= SCREEN_H / 2 ) continue;
-				buffer[x + (SCREEN_H / 2 + y) * SCREEN_W] = ray_sides[x] ? 0xFFFFFFFF : 0xE0E0E0FF;
-				buffer[x + (SCREEN_H / 2 - y) * SCREEN_W] = ray_sides[x] ? 0xFFFFFFFF : 0xE0E0E0FF;
+			
+			for ( int y = 0; y < wall_strip_heights[x]; y++ ) {
+				int offset = SCREEN_H - (wall_strip_heights[2] / 2) > SCREEN_H ? SCREEN_H : (wall_strip_heights[2] / 2);
+				if ( y + offset >= SCREEN_H ) continue;
+				buffer[x + (y + offset) * SCREEN_W] = ray_sides[x] ? 0xFFFFFFFF : 0xE0E0E0FF;
 			}
-			
-			
 		}
 		SDL_UpdateTexture(buffer_texture, NULL, buffer, 4 * SCREEN_W);
 		sdl_begin_draw();

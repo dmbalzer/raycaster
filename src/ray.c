@@ -16,6 +16,8 @@ extern const int map[];
 Vector2 rays[SCREEN_W] = { 0 };
 float perp_dists[SCREEN_W] = { 0 };
 bool ray_sides[SCREEN_W] = { 0 };
+float screen_dist = 0.0f;
+float wall_strip_heights[SCREEN_W] = { 0 };
 
 static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 	/******************************************************
@@ -88,6 +90,11 @@ float _get_perp_dist(Vector2 cam_plane, Vector2 ray, bool h_hit) {
 }
 
 void ray_update(void) {
+	if ( screen_dist == 0.0f ) {
+		float half_fov = Vector2Angle(dir, Vector2Add(dir, plane));
+		screen_dist = (SCREEN_W / 2) / tanf(half_fov);
+	}
+
     for ( int i = 0; i < SCREEN_W; i++ ) {
 		float x = 2 * i / (float)SCREEN_W - 1;
 		Vector2 cam_plane = Vector2Scale(plane, x);
@@ -98,6 +105,7 @@ void ray_update(void) {
 
         rays[i] = _ray_cast(ray_dir, &ray_sides[i]);
 		perp_dists[i] = _get_perp_dist(cam_plane, rays[i], ray_sides[i]);
+		wall_strip_heights[i] = 1 / perp_dists[i] * screen_dist;
     }
 }
 
