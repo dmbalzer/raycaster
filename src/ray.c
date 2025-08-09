@@ -18,8 +18,9 @@ static float screen_dist = 0.0f;
 Vector2 rays[SCREEN_W] = { 0 };
 bool ray_sides[SCREEN_W] = { 0 };
 float wall_strip_heights[SCREEN_W] = { 0 };
+int map_hit_nos[SCREEN_W] = { 0 };
 
-static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
+static void _ray_cast(Vector2 ray_dir, Vector2* ray, bool* h_hit, int* map_hit_no) {
 	/******************************************************
 	 * Horizontal Side Checks
 	 ******************************************************/
@@ -35,6 +36,7 @@ static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 
 	bool hit = false;
 	Vector2 hray = hside;
+	int h_map_no = 0;
 	while ( !hit ) {
 		int x = (int)(pos.x + hray.x);
 		if ( x >= MAP_W ) x = MAP_W - 1;
@@ -44,6 +46,7 @@ static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 		if ( y < 0 ) y = 0;
 		if ( map[ x + y * MAP_W ] != 0 ) {
 			
+			h_map_no = map[ x + y * MAP_W ];
 			break;
 		}
 		hray = Vector2Add(hray, hstep);
@@ -65,6 +68,7 @@ static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 
 	hit = false;
 	Vector2 vray = vside;
+	int v_map_no = 0;
 	while ( !hit ) {
 		int x = ray_dir.x < 0 ? (int)(pos.x + vray.x) - 1: (int)(pos.x + vray.x);
 		if ( x >= MAP_W ) x = MAP_W - 1;
@@ -74,14 +78,15 @@ static Vector2 _ray_cast(Vector2 ray_dir, bool* h_hit) {
 		if ( y < 0 ) y = 0;
 		if ( map[ x + y * MAP_W ] != 0 ) {
 			
+			v_map_no = map[ x + y * MAP_W ];
 			break;
 		}
 		vray = Vector2Add(vray, vstep);
 	}
 	
 	*h_hit = (Vector2Length(hray) < Vector2Length(vray));
-	Vector2 ray = *h_hit ? hray : vray;
-	return ray;
+	*ray = *h_hit ? hray : vray;
+	*map_hit_no = *h_hit ? h_map_no : v_map_no;
 }
 
 float _get_perp_dist(Vector2 cam_plane, Vector2 ray, bool h_hit) {
@@ -103,7 +108,7 @@ void ray_update(void) {
 			.y = dir.y + cam_plane.y
 		};
 
-        rays[i] = _ray_cast(ray_dir, &ray_sides[i]);
+        _ray_cast(ray_dir, &rays[i], &ray_sides[i], &map_hit_nos[i]);
 		float perp_dist = _get_perp_dist(cam_plane, rays[i], ray_sides[i]);
 		wall_strip_heights[i] = 1 / perp_dist * screen_dist;
     }
