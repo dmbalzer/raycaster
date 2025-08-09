@@ -13,11 +13,11 @@
 
 #define WINDOW_W 960
 #define WINDOW_H 640
-#define SCREEN_W 240
-#define SCREEN_H 160
+#define SCREEN_W 480
+#define SCREEN_H 320
 
-#define MAP_W 15
-#define MAP_H 11
-#define TILE_SIZE 32
+#define MAP_W 40
+#define MAP_H 20
+#define TILE_SIZE 64
 
 #endif // DEFS_INCLUDED

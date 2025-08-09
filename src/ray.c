@@ -13,9 +13,9 @@ extern Vector2 plane;
 /* map.c */
 extern const int map[];
 
-static Vector2 rays[SCREEN_W] = { 0 };
 static float screen_dist = 0.0f;
 
+Vector2 rays[SCREEN_W] = { 0 };
 bool ray_sides[SCREEN_W] = { 0 };
 float wall_strip_heights[SCREEN_W] = { 0 };
 
