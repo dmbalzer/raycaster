@@ -34,7 +34,6 @@ void wall_buffer_update(void) {
 	for ( int i = 0; i < SCREEN_W * SCREEN_H / 2; i++ ) wall_buffer[i] = 0x888888FF;
 	for ( int i = SCREEN_W * SCREEN_H / 2; i < SCREEN_W * SCREEN_H - 1; i++ ) wall_buffer[i] = 0x404040FF;
 	for ( int x = 0; x < SCREEN_W; x++ ) {
-		
 		for ( int y = 0; y < wall_strip_heights[x]; y++ ) {
 			int offset = SCREEN_H / 2 - (wall_strip_heights[x] > SCREEN_H ? SCREEN_H : wall_strip_heights[x]) / 2;
 			if ( y + offset >= SCREEN_H ) continue;
